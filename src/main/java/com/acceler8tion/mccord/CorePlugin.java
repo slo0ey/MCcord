@@ -50,7 +50,7 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
                         LOGGER.log(Level.INFO, "Connect to " + ChatColor.BLUE + "Discord");
                         jda.set(
                                 JDABuilder.createLight(yaml.getString("token"))
-                                            .addEventListeners(new DiscordChatListener())
+                                            .addEventListeners(new DiscordChatListener(this))
                                             .enableIntents(GatewayIntent.GUILD_PRESENCES)
                                             .setActivity(Activity.playing("with Minecraft Players"))
                                             .setStatus(OnlineStatus.ONLINE)
