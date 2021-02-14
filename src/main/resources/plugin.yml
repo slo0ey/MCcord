@@ -2,5 +2,5 @@ name: MCcord
 version: ${project.version}
 main: com.acceler8tion.mccord.CorePlugin
 api-version: 1.16
-prefix: ${project.properties.logPrefix}
+prefix: MCcord_1.0-SNP
 authors: [ acceler8tion ]

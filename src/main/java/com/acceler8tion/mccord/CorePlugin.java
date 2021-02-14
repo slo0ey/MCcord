@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 public final class CorePlugin extends JavaPlugin implements ICorePlugin {
     private static final Logger LOGGER = Bukkit.getLogger();
     private JDA jda = null;
-
     public static String guildID;
     public static String channelID;
 
@@ -32,7 +31,7 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
                 try {
                         @NotNull
                         YamlConfiguration yaml;
-                        String token, guildID, channelID;
+                        String token;
                         try {
                                 yaml = YamlConfiguration.loadConfiguration(new File("discord.yml"));
                                 token = yaml.getString("Token");
@@ -52,12 +51,12 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
                         LOGGER.log(Level.INFO, "Connect to " + ChatColor.BLUE + "Discord");
                         jda = JDABuilder.createLight(yaml.getString("token"))
                                         .addEventListeners(new DiscordChatListener())
-                                        .enableIntents(GatewayIntent.GUILD_PRESENCES)
+                                        .enableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS)
                                         .setActivity(Activity.playing("with Minecraft Players"))
                                         .setStatus(OnlineStatus.ONLINE)
                                         .build();
                 } catch (IllegalArgumentException e) {
-                        LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "You need to enable `Precense Intent`");
+                        LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "You need to enable `Precense Intent` & `Server Members Intent`");
                         LOGGER.log(Level.WARNING, ChatColor.RED + "Visit here --> `https://discord.com/developers/applications`");
                 } catch (LoginException e) {
                         LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "Failed to login!");
