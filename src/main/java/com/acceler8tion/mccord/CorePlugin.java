@@ -14,13 +14,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class CorePlugin extends JavaPlugin implements ICorePlugin {
     private static final Logger LOGGER = Bukkit.getLogger();
-    private final AtomicReference<JDA> jda = new AtomicReference<>();
+    private JDA jda = null;
+
+    public static String guildID;
+    public static String channelID;
 
     @Override
     public void onEnable() {
@@ -48,14 +50,12 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
                                 return;
                         }
                         LOGGER.log(Level.INFO, "Connect to " + ChatColor.BLUE + "Discord");
-                        jda.set(
-                                JDABuilder.createLight(yaml.getString("token"))
-                                            .addEventListeners(new DiscordChatListener(this))
-                                            .enableIntents(GatewayIntent.GUILD_PRESENCES)
-                                            .setActivity(Activity.playing("with Minecraft Players"))
-                                            .setStatus(OnlineStatus.ONLINE)
-                                            .build()
-                        );
+                        jda = JDABuilder.createLight(yaml.getString("token"))
+                                        .addEventListeners(new DiscordChatListener())
+                                        .enableIntents(GatewayIntent.GUILD_PRESENCES)
+                                        .setActivity(Activity.playing("with Minecraft Players"))
+                                        .setStatus(OnlineStatus.ONLINE)
+                                        .build();
                 } catch (IllegalArgumentException e) {
                         LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "You need to enable `Precense Intent`");
                         LOGGER.log(Level.WARNING, ChatColor.RED + "Visit here --> `https://discord.com/developers/applications`");
@@ -68,11 +68,11 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
 
     @Override
     public void onDisable() {
-        jda.get().shutdown();
+        jda.shutdown();
     }
 
     @Override
     public JDA getJDA() {
-        return jda.get();
+        return jda;
     }
 }
