@@ -1,0 +1,6 @@
+name: MCcord
+version: ${project.version}
+main: com.acceler8tion.mccord.CorePlugin
+api-version: 1.16
+prefix: ${project.properties.logPrefix}
+authors: [ acceler8tion ]
