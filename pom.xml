@@ -6,7 +6,7 @@
 
     <groupId>com.acceler8tion</groupId>
     <artifactId>MCcord</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>MCcord</name>

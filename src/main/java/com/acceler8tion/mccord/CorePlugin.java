@@ -14,64 +14,94 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class CorePlugin extends JavaPlugin implements ICorePlugin {
     private static final Logger LOGGER = Bukkit.getLogger();
-    private JDA jda = null;
+    private static final AtomicBoolean ready = new AtomicBoolean(false);
     public static String guildID;
     public static String channelID;
+    public Integer serverPresenceUpdateTaskId = null;
+    private JDA jda = null;
 
     @Override
     public void onEnable() {
         LOGGER.log(Level.INFO, ChatColor.GOLD + "Starting...");
-        Bukkit.getPluginManager().registerEvents(new McChatListener(this), this);
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-                try {
-                        @NotNull
-                        YamlConfiguration yaml;
-                        String token;
-                        try {
-                                yaml = YamlConfiguration.loadConfiguration(new File("discord.yml"));
-                                token = yaml.getString("Token");
-                                guildID = yaml.getString("GuildID");
-                                channelID = yaml.getString("ChannelID");
+        Bukkit.getPluginManager().registerEvents(new McEventListener(this), this);
 
-                                PropertyChecker.valid(token, guildID, channelID); //check if values are safe
-
-                        } catch (IllegalArgumentException e) {
-                                LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "`discord.yml` file does not exist!");
-                                LOGGER.log(Level.WARNING, ChatColor.RED + "Check out `README.mccord.txt`");
-                                return;
-                        } catch (NoSuchFieldException e) {
-                                LOGGER.log(Level.WARNING, ChatColor.DARK_RED + e.getMessage());
-                                return;
-                        }
-                        LOGGER.log(Level.INFO, "Connect to " + ChatColor.BLUE + "Discord");
-                        jda = JDABuilder.createLight(yaml.getString("token"))
-                                        .addEventListeners(new DiscordChatListener())
-                                        .enableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS)
-                                        .setActivity(Activity.playing("with Minecraft Players"))
-                                        .setStatus(OnlineStatus.ONLINE)
-                                        .build();
-                } catch (IllegalArgumentException e) {
-                        LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "You need to enable `Precense Intent` & `Server Members Intent`");
-                        LOGGER.log(Level.WARNING, ChatColor.RED + "Visit here --> `https://discord.com/developers/applications`");
-                } catch (LoginException e) {
-                        LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "Failed to login!");
-                        LOGGER.log(Level.WARNING, ChatColor.RED + "Try to use `/mccord reconnect` or check your token");
-                }
-        });
+        onConnect();
     }
 
     @Override
+    public void onConnect() {
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            try {
+                @NotNull
+                YamlConfiguration yaml;
+                String token;
+                try {
+                    yaml = YamlConfiguration.loadConfiguration(new File("mccord.yml"));
+                    token = yaml.getString("Token");
+                    guildID = yaml.getString("GuildID");
+                    channelID = yaml.getString("ChannelID");
+
+                    PropertyChecker.valid(token, guildID, channelID); //check if values are safe
+
+                } catch (IllegalArgumentException e) {
+                    LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "`mccord.yml` file does not exist!");
+                    LOGGER.log(Level.WARNING, ChatColor.RED + "Check out `https://github.com/acceler8tion/MCcord/README.mc`");
+                    return;
+                } catch (NoSuchFieldException e) {
+                    LOGGER.log(Level.WARNING, ChatColor.DARK_RED + e.getMessage());
+                    return;
+                }
+                LOGGER.log(Level.INFO, "Connect to " + ChatColor.BLUE + "Discord");
+                jda = JDABuilder.createLight(token)
+                        .addEventListeners(new DiscordEventListener(this))
+                        .enableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS)
+                        .setActivity(Activity.playing("with Minecraft Players"))
+                        .setStatus(OnlineStatus.ONLINE)
+                        .build().awaitReady();
+            } catch (IllegalArgumentException e) {
+                LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "You need to enable `Presence Intent` & `Server Members Intent`");
+                LOGGER.log(Level.WARNING, ChatColor.RED + "Visit here --> `https://discord.com/developers/applications`");
+            } catch (LoginException e) {
+                LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "Failed to login!");
+                LOGGER.log(Level.WARNING, ChatColor.RED + "Try to use `/mccord reconnect` or check your token if it is valid");
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "Thread interrupted! RESTART SERVER");
+            }
+        });
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Override
     public void onDisable() {
-        jda.shutdown();
+        if(serverPresenceUpdateTaskId != null) {
+            Bukkit.getScheduler().cancelTask(serverPresenceUpdateTaskId);
+            serverPresenceUpdateTaskId = null;
+        }
+        jda.getGuildById(guildID).getTextChannelById(channelID).getManager().setTopic(String.format("Server: OFF, Online Players(0/%d)", Bukkit.getMaxPlayers())).queue();
+        jda.shutdownNow();
+    }
+
+    @Override
+    public void onLoop(Runnable runnable) {
+        serverPresenceUpdateTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, runnable, 0, 200);
     }
 
     @Override
     public JDA getJDA() {
         return jda;
+    }
+
+    static void ready() {
+        ready.set(true);
+    }
+
+    static boolean isReady() {
+        return ready.get();
     }
 }
