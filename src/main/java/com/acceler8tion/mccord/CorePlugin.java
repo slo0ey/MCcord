@@ -51,7 +51,7 @@ public final class CorePlugin extends JavaPlugin implements ICorePlugin {
 
                 } catch (IllegalArgumentException e) {
                     LOGGER.log(Level.WARNING, ChatColor.DARK_RED + "`mccord.yml` file does not exist!");
-                    LOGGER.log(Level.WARNING, ChatColor.RED + "Check out `https://github.com/acceler8tion/MCcord/README.mc`");
+                    LOGGER.log(Level.WARNING, ChatColor.RED + "Read this `https://github.com/acceler8tion/MCcord/tree/master#how-to-use`");
                     return;
                 } catch (NoSuchFieldException e) {
                     LOGGER.log(Level.WARNING, ChatColor.DARK_RED + e.getMessage());
