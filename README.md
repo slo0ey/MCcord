@@ -10,7 +10,7 @@ You can communicate with users between Minecraft & Discord!
 
 # How to use?
 
-1. Download jar file here and put your server plugin folder.
+1. Download jar file [here](https://github.com/acceler8tion/MCcord/releases/download/1.0.0/MCcord.jar) and put your server plugin folder.
 
 2. Create your own discord application(for bot) [here](https://discord.com/developers/).
 
