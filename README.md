@@ -1,4 +1,4 @@
-# MCcord
+# MCcord(available on 1.16.x)
 
 You can communicate with users between Minecraft & Discord!
 
